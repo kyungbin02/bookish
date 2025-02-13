@@ -1,7 +1,7 @@
 import { Typography } from '@mui/material';
 import { Route, Routes } from 'react-router-dom';
-import BookListContainer from "./BookList/BookListContainer";
-import BookDetailContainer from "./BookDetail/BookDetailContainer";
+import BookListContainer from './BookList/BookListContainer';
+import BookDetailContainer from './BookDetail/BookDetailContainer';
 
 
 const App = () => {  
@@ -19,4 +19,3 @@ const App = () => {
 }
 
 export default App;
-
