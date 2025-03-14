@@ -7,6 +7,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.4.2",
     "@mui/material": "^6.4.2",
+    "@reduxjs/toolkit": "^2.5.1",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
     "@testing-library/user-event": "^13.2.1",
@@ -15,8 +16,10 @@
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "axios": "^1.7.9",
+    "body-parser": "^1.20.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-redux": "^9.2.0",
     "react-router": "^7.1.4",
     "react-router-dom": "^6.29.0",
     "react-scripts": "5.0.1",
@@ -24,12 +27,14 @@
     "web-vitals": "^2.1.0"
   },
   "scripts": {
-    "stub-server": "json-server --watch books.json --port 8080",
+    "stub-server": "json-server --watch db.json --port 8080",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --transformIgnorePatterns \"node_modules/(?!axios)/\"",
     "eject": "react-scripts eject",
-    "e2e": "cypress run"
+    "e2e": "cypress run",
+    "server": "node server.js",
+    "dev": "concurrently \"npm start\" \"npm run server\" \"npm run stub-server\""
   },
   "eslintConfig": {
     "extends": [
@@ -52,6 +57,7 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/react-router-dom": "^5.3.3",
+    "concurrently": "^9.1.2",
     "cypress": "^14.0.1",
     "json-server": "^0.17.4"
   }

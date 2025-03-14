@@ -1,19 +1,20 @@
 import { TextField } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../store";
+import { setTerm, fetchBooks } from "../bookListSlice";
 
-const SearchBox = ({
-  term,
-  onSearch,
-}: {
-  term: string;
-  onSearch: (term: string) => void;
-}) => {
-  
-  const performSearch = (event: any) => {
+const SearchBox = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const term = useSelector((state: RootState) => state.list.term);
+
+  const performSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    if (value && value.trim().length === 0) {
-      return; // 공백만 입력되면 검색 실행 안 함
+    if (value.trim().length === 0) {
+      dispatch(setTerm("")); // 검색어 초기화
+      return;
     }
-    onSearch(value);
+    dispatch(setTerm(value));
+    dispatch(fetchBooks(value));
   };
 
   return (

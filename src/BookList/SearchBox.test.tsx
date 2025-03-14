@@ -1,31 +1,53 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
+import bookListReducer from "../bookListSlice";
 import SearchBox from "./SearchBox";
+import { act } from "react-dom/test-utils";
 
-describe("SearchBox", () => {
-  it("renders input", async () => {
-    const props = {
-      term: "",
-      onSearch: jest.fn(),
-    };
+it("renders input", async () => {
+  const mockStore = configureStore({
+    reducer: {
+      list: bookListReducer,
+    },
+  });
 
-    render(<SearchBox {...props} />);
-    const input = screen.getByRole("textbox");
+  render(
+    <Provider store={mockStore}>
+      <SearchBox />
+    </Provider>
+  );
 
+  const input = screen.getByRole("textbox");
+
+  await act(async () => {
     await userEvent.type(input, "Refactoring");
-    expect(props.onSearch).toHaveBeenCalled();
   });
 
-  it("trim empty strings", async () => {
-    const props = {
-      term: "",
-      onSearch: jest.fn(),
-    };
+  const state = mockStore.getState();
+  expect(state.list.term).toEqual("Refactoring");
+});
 
-    render(<SearchBox {...props} />);
-    const input = screen.getByRole("textbox");
+it("trim empty strings", async () => {
+  const mockStore = configureStore({
+    reducer: {
+      list: bookListReducer,
+    },
+  });
 
+  render(
+    <Provider store={mockStore}>
+      <SearchBox />
+    </Provider>
+  );
+
+  const input = screen.getByRole("textbox");
+
+  await act(async () => {
     await userEvent.type(input, " ");
-    expect(props.onSearch).not.toHaveBeenCalled();
   });
+
+  const state = mockStore.getState();
+  expect(state.list.term).toEqual("");
 });

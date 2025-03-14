@@ -3,12 +3,34 @@
     {
       "id": 1,
       "name": "Refactoring",
-      "description": "Martin Fowler's Refactoring defined core ideas and techniques ..."
+      "description": "Martin Fowler's Refactoring defined core ideas and techniques ...",
+      "reviews": [
+        {
+          "id": 1,
+          "bookId": 1,
+          "name": "Juntao Qiu",
+          "content": "Excellent work!"
+        }
+      ]
     },
     {
       "id": 2,
       "name": "Domain-driven design",
-      "description": "Explains how to incorporate effective domain modeling into the software development process."
+      "description": "Explains how to incorporate effective domain modeling into the software development process.",
+      "reviews": [
+        {
+          "id": 1,
+          "bookId": 2,
+          "name": "kyungbin",
+          "content": "good"
+        },
+        {
+          "id": 2,
+          "bookId": 2,
+          "name": "ㄹㄷㅈㄹ",
+          "content": "ㄷㅈㄷㅈ"
+        }
+      ]
     },
     {
       "id": 3,
