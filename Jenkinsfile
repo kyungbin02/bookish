@@ -4,7 +4,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Jenkins에서 Git 저장소를 체크아웃
-                git url: 'https://github.com/your-username/bookish.git', branch: 'main'
+                git url: 'https://github.com/kyungbin02/bookish.git', branch: '07-the-book-detail-view'
             }
         }
         stage('Install') {
