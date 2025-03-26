@@ -1,24 +1,19 @@
 pipeline {
     agent any
     stages {
-        stage('Checkout') {
+        stage("Checkout") {
             steps {
-                // Jenkins에서 Git 저장소를 체크아웃
-                git url: 'https://github.com/kyungbin02/bookish.git', branch: '07-the-book-detail-view'
+                git url: 'https://github.com/kyungbin02/bookish.git', branch: 'main'
             }
         }
-        stage('Install') {
+        stage("Compile") {
             steps {
-                // 리눅스 환경 가정. 윈도우라면 bat 'npm install'
-                sh 'npm install'
+                sh "./gradlew compileJava"
             }
         }
-        stage('Start') {
+        stage("Unit test") {
             steps {
-                // 백그라운드(&)로 서버 실행
-                sh 'npm start &'
-                // 서버가 완전히 기동될 시간을 줌
-                sh 'sleep 10'
+                sh "./gradlew test"
             }
         }
     }
