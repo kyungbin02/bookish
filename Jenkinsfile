@@ -3,19 +3,22 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                // Jenkins에서 Git 저장소를 체크아웃
                 git url: 'https://github.com/kyungbin02/bookish.git', branch: '07-the-book-detail-view'
             }
         }
-        stage('Install & Start') {
+        stage('Install') {
             steps {
-                script {
-                    // 'node:16' 이미지를 사용하여, 해당 컨테이너 내부에서 npm 명령어를 실행합니다.
-                    docker.image('node:16').inside {
-                        sh 'npm install'
-                        sh 'npm start &'
-                        sh 'sleep 10'
-                    }
-                }
+                // 리눅스 환경 가정. 윈도우라면 bat 'npm install'
+                sh 'npm install'
+            }
+        }
+        stage('Start') {
+            steps {
+                // 백그라운드(&)로 서버 실행
+                sh 'npm start &'
+                // 서버가 완전히 기동될 시간을 줌
+                sh 'sleep 10'
             }
         }
     }
