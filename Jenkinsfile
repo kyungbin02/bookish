@@ -20,7 +20,7 @@ pipeline {
         stage("Start App") {
             steps {
                 sh 'nohup npm start > bookish.log 2>&1 &'
-                sleep 15
+                sleep 60
                 sh 'cat bookish.log'
             }
         }
