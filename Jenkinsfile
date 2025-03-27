@@ -8,7 +8,8 @@ pipeline {
     stages {
         stage("Checkout") {
             steps {
-                git url: 'https://github.com/kyungbin02/bookish-react.git', branch: 'master'
+                git url: 'https://github.com/kyungbin02/bookish.git', branch: '07-the-book-detail-view'
+
             }
         }
         stage("Install") {
