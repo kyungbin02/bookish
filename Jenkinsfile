@@ -1,20 +1,38 @@
 pipeline {
     agent any
+
+    tools {
+        nodejs 'NodeJS'
+    }
+
     stages {
         stage("Checkout") {
             steps {
-                git url: 'https://github.com/leszko/calculator.git', branch: 'main'
+                git url: 'https://github.com/kyungbin02/bookish-react.git', branch: 'master'
             }
         }
-        stage("Compile") {
+        stage("Install") {
             steps {
-                sh "./gradlew compileJava"
+                sh 'npm ci'
             }
         }
-        stage("Unit test") {
+        stage("Start App") {
             steps {
-                sh "./gradlew test"
+                sh 'nohup npm start > bookish.log 2>&1 &'
+                sleep 15
+                sh 'cat bookish.log'
             }
+        }
+        stage("Smoke Test") {
+            steps {
+                sh 'curl --fail http://localhost:3000'
+            }
+        }
+    }
+
+    post {
+        always {
+            sh 'pkill -f "npm start" || true'
         }
     }
 }
