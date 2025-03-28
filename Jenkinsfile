@@ -5,6 +5,12 @@ pipeline {
         nodejs 'NodeJS'
     }
 
+    // CI 환경에서 npm start가 대화형 입력 없이 실행되도록 설정
+    environment {
+        CI = 'true'
+        BROWSER = 'none'
+    }
+
     stages {
         stage("Checkout") {
             steps {
@@ -18,21 +24,22 @@ pipeline {
         }
         stage("Build Production") {
             steps {
+                // Production 빌드가 필요하지 않다면 이 단계는 생략 가능
                 sh 'npm run build'
             }
         }
         stage("Start & Test") {
             steps {
                 script {
-                    // Jenkins가 백그라운드 프로세스를 kill하지 않도록 환경 변수 설정
+                    // 백그라운드에서 npm start 실행. JENKINS_NODE_COOKIE는 프로세스 종료를 방지함.
                     sh '''
                         export JENKINS_NODE_COOKIE=dontKillMe
-                        nohup npx serve -s build -l 3000 > devserver.log 2>&1 &
+                        nohup npm start > devserver.log 2>&1 &
                     '''
-                    // 서버가 기동될 때까지 최대 60초 동안 폴링 (매 1초 시도)
+                    // 최대 120초 동안 매 1초마다 서버가 기동했는지 확인하는 폴링 루프
                     sh '''
                         echo "Waiting for server on port 3000..."
-                        for i in {1..60}; do
+                        for i in {1..120}; do
                           if curl -sf http://localhost:3000 > /dev/null; then
                             echo "Server is up!"
                             exit 0
@@ -42,7 +49,7 @@ pipeline {
                         echo "Server did not start in time."
                         exit 1
                     '''
-                    // 최종적으로 3000번 포트에 접속해서 성공 여부 확인
+                    // 최종적으로 curl로 접속 테스트
                     sh 'curl --fail http://localhost:3000'
                 }
             }
@@ -51,8 +58,8 @@ pipeline {
 
     post {
         always {
-            // 빌드 후 백그라운드 서버 프로세스 종료
-            sh 'pkill -f "serve -s build" || true'
+            // 빌드 후 백그라운드 npm start 프로세스 종료
+            sh 'pkill -f "npm start" || true'
         }
     }
 }
