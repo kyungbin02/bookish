@@ -1,5 +1,9 @@
 pipeline {
-    agent any  // 노드 아무곳이나, Node.js가 설치된 곳에서 빌드
+    agent any
+    // -- 여기 추가
+    tools {
+        nodejs 'NodeJS installations'  // 관리화면에서 지정한 이름
+    }
     stages {
         stage("Checkout") {
             steps {
@@ -18,13 +22,11 @@ pipeline {
         }
         stage('Build') {
             steps {
-                // 빌드 스크립트가 있으면 (예: React, Vue, Angular 등)
                 sh 'npm run build'
             }
         }
         stage('Start') {
             steps {
-                // 단순 서버 실행 확인이라면 이렇게
                 sh 'npm start'
             }
         }
