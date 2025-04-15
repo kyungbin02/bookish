@@ -2,7 +2,7 @@ pipeline {
     agent any
     // -- 여기 추가
     tools {
-        nodejs 'NodeJS installations'  // 관리화면에서 지정한 이름
+        nodejs 'NodeJS'  // 관리화면에서 지정한 이름
     }
     stages {
         stage("Checkout") {
