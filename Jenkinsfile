@@ -1,8 +1,7 @@
 pipeline {
     agent any
-    // -- 여기 추가
     tools {
-        nodejs 'NodeJS'  // 관리화면에서 지정한 이름
+        nodejs 'NodeJS' 
     }
     stages {
         stage("Checkout") {
@@ -15,9 +14,14 @@ pipeline {
                 sh 'npm install'
             }
         }
-        stage('Test') {
+        stage('Unit Test') {
             steps {
                 sh 'npm test'
+            }
+        }
+        stage('Cypress Test') {
+            steps {
+                sh 'npx cypress run'
             }
         }
         stage('Build') {
