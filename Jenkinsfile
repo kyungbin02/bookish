@@ -1,66 +1,66 @@
 pipeline {
     agent any
-    tools {
-        nodejs 'NodeJS'            // Jenkins > 관리 > Global Tool Configuration 에서 등록한 이름
-    }
+    tools { nodejs 'NodeJS' }          // Jenkins > Global Tool Configuration 에서 등록한 이름
 
     stages {
-
         /* 1. 소스 내려받기 */
         stage('Checkout') {
-            steps {
-                git url: 'https://github.com/kyungbin02/bookish.git',
-                    branch: '07-the-book-detail-view'
-            }
+            steps { git url: 'https://github.com/kyungbin02/bookish.git', branch: '07-the-book-detail-view' }
         }
 
-        /* 2. 의존 설치 (devDependencies 포함, Cypress도 설치됨) */
+        /* 2. 의존 설치 – 진행바 보이게 */
         stage('Install') {
             steps {
-                sh 'npm ci'         // lockfile 기반이라 install보다 빠르고 안정적
+                // --progress=true 로 콘솔에 게이지 출력, --loglevel=info 로 패키지명도 표시
+                sh 'npm ci --progress=true --loglevel=info'
             }
         }
 
         /* 3. 단위 테스트 */
         stage('Unit Test') {
-            steps {
-                sh 'npm test'
-            }
+            steps { sh 'npm test --watchAll=false' }   // watch 끄고 한 번만 실행
         }
 
-        /* 4. 프런트 빌드 */
+        /* 4. 번들 빌드 */
         stage('Build') {
-            steps {
-                sh 'npm run build'
-            }
+            steps { sh 'npm run build' }
         }
 
-        /* 5. dev-server 백그라운드 기동 */
-        stage('Start Dev Server') {
+        /* 5. Stub-Server(json-server) 기동 : 4000 포트 */
+        stage('Start Stub') {
             steps {
                 sh '''
-                    npm start -- --port 3000 &   # & 로 백그라운드 실행
-                    echo $! > dev.pid           # PID 저장
-                    npx wait-on http://localhost:3000   # 서버 뜰 때까지 대기
+                    npm run stub-server -- --port 4000 &
+                    echo $! > stub.pid
+                    npx wait-on http://localhost:4000/books
                 '''
             }
         }
 
-        /* 6. Cypress E2E 실행 (headless) */
-        stage('Cypress Test') {
+        /* 6. 프런트 dev-server 기동 : 3000 포트 */
+        stage('Start Front') {
             steps {
-                sh 'npx cypress run --config baseUrl=http://localhost:3000'
+                sh '''
+                    REACT_APP_API_URL=http://localhost:4000 \        # 프런트가 호출할 API 주소
+                    npm start -- --port 3000 &                       # 백그라운드 실행
+                    echo $! > front.pid
+                    npx wait-on http://localhost:3000
+                '''
             }
+        }
+
+        /* 7. Cypress E2E (headless) */
+        stage('Cypress Test') {
+            steps { sh 'npx cypress run --config baseUrl=http://localhost:3000' }
         }
     }
 
-    /* 7. 파이프라인 끝나면 dev-server 종료 */
+    /* 8. 항상 두 서버 종료 */
     post {
         always {
             sh '''
-                if [ -f dev.pid ]; then
-                  kill $(cat dev.pid) || true
-                fi
+                [ -f front.pid ] && kill $(cat front.pid) || true
+                [ -f stub.pid  ] && kill $(cat stub.pid)  || true
             '''
         }
     }
