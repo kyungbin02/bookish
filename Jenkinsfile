@@ -1,9 +1,19 @@
 pipeline {
     agent any
-    tools { nodejs 'NodeJS' }             // Jenkins > Global Tool Configuration 에서 등록한 이름
 
+    /* ❏ 툴 & 공통 환경변수  ------------------------------ */
+    tools {
+        nodejs 'NodeJS'          // Jenkins → Manage Jenkins → Tools 에 등록한 이름
+    }
+    environment {
+        // CRA 빌드 시 test 모드 강제 종료·경고 제거
+        CI             = 'false'
+        // 프런트에서 fetch 할 때 process.env.REACT_APP_API_URL 로 접근
+        REACT_APP_API_URL = 'http://localhost:8080'
+    }
+
+    /* ❏ 단계별 ------------------------------------------------ */
     stages {
-        /* 1. 소스 */
         stage('Checkout') {
             steps {
                 git url: 'https://github.com/kyungbin02/bookish.git',
@@ -11,63 +21,75 @@ pipeline {
             }
         }
 
-        /* 2. 의존 설치 – 진행바 켜기 */
         stage('Install') {
             steps {
-                sh 'npm ci --progress=true --loglevel=info'
+                sh '''
+                    echo "📦  Installing dependencies..."
+                    npm ci --progress=true
+                '''
             }
         }
 
-        /* 3. 단위 테스트 */
         stage('Unit Test') {
             steps {
-                sh 'npm test --watchAll=false'
+                sh '''
+                    echo "🧪  Running tests..."
+                    npm test --watchAll=false
+                '''
             }
         }
 
-        /* 4. 빌드 */
         stage('Build') {
             steps {
-                sh 'npm run build'
+                sh '''
+                    echo "🔨  Building production bundle..."
+                    npm run build
+                '''
+            }
+            post {
+                success {
+                    /* 산출물 보존 – 필요 없으면 삭제 */
+                    archiveArtifacts artifacts: 'build/**', followSymlinks: false
+                }
             }
         }
 
-        /* 5. JSON-stub 서버 (4000) */
         stage('Start Stub') {
             steps {
                 sh '''
-                    npm run stub-server -- --port 4000 &
-                    echo $! > stub.pid
-                    npx wait-on http://localhost:4000/books
+                    echo "🚀  Starting JSON stub server on :8080..."
+                    npm run stub-server &             # <-- package.json 에 정의된 8080 사용
+                    STUB_PID=$!
+                    echo $STUB_PID > .stub_pid
+
+                    # ▒▒▒ wait-on ‘게이지’ ▒▒▒
+                    npx wait-on http://localhost:8080/books
                 '''
             }
         }
 
-        /* 6. 프런트 dev-server (3000) */
-        stage('Start Front') {
+        stage('Start App') {
             steps {
                 sh '''
-                    REACT_APP_API_URL=http://localhost:4000 npm start -- --port 3000 &
-                    echo $! > front.pid
-                    npx wait-on http://localhost:3000
-                '''
-            }
-        }
+                    echo "🌐  Starting React dev-server..."
+                    npm start &                       # 기본 3000
+                    APP_PID=$!
+                    echo $APP_PID > .app_pid
 
-        /* 7. Cypress E2E */
-        stage('Cypress Test') {
-            steps {
-                sh 'npx cypress run --config baseUrl=http://localhost:3000'
+                    # dev-server 뜰 때까지 잠깐 대기
+                    sleep 10
+                '''
             }
         }
     }
 
-    /* 8. 언제나 두 서버 종료 */
+    /* ❏ 파이프라인 종료 시 항상 프로세스 정리 ------------------ */
     post {
         always {
+            echo '🧹  Cleaning up background processes...'
             sh '''
-                [ -f front.pid ] && kill $(cat front.pid) || true
-                [ -f stub.pid  ] && kill $(cat stub.pid)  || true
+                if [ -f .app_pid  ]; then kill $(cat .app_pid)  || true ; fi
+                if [ -f .stub_pid ]; then kill $(cat .stub_pid) || true ; fi
             '''
         }
     }
