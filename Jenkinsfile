@@ -2,55 +2,53 @@ pipeline {
   agent any
 
   tools {
+    // Global Tool Configuration 에서 등록한 NodeJS 이름
     nodejs 'NodeJS'
   }
 
   stages {
     stage('Checkout') {
       steps {
-        git url: 'https://github.com/kyungbin02/bookish.git', branch: '07-the-book-detail-view'
+        // 본인의 브랜치명으로 변경 가능
+        git url: 'https://github.com/kyungbin02/bookish.git',
+            branch: '07-the-book-detail-view'
       }
     }
 
     stage('Install') {
       steps {
+        // package-lock.json 동기화 문제가 있을 땐 'npm install' 로 변경해도 무방합니다.
         sh 'npm install'
       }
     }
 
-    stage('Cypress Smoke Test') {
+    stage('Smoke Test') {
       steps {
         sh '''#!/usr/bin/env bash
           set -e
 
-          # 0) 혹시 남은 프로세스가 있으면 모두 정리
-          echo "🧹 Killing stale processes..."
+          echo "🧹 Killing any stale servers..."
           pkill -f "react-scripts start" || true
-          pkill -f "json-server"         || true
-          pkill -f "node server.js"      || true
 
-          # 1) Dev 서버(UI + API + stub) 기동
-          echo "🚀 Starting dev servers..."
-          npm run dev &
+          echo "🚀 Starting application..."
+          # UI 서버만 띄우도록 변경 (API나 stub가 필요 없다면 제거하세요)
+          nohup npm start > ui.log 2>&1 &
 
-          # 2) 3개 포트(3000,4000,8080)가 준비될 때까지 대기
-          npx wait-on http://localhost:3000 \
-                       http://localhost:4000 \
-                       http://localhost:8080 \
-                       --timeout 600000
+          echo "⏳ Waiting for http://localhost:3000 ..."
+          npx wait-on http://localhost:3000 --timeout 120000
 
-          # 3) Cypress 실행
-          echo "🧪 Running Cypress..."
-          npx cypress run
+          echo "🧪 Running Cypress smoke tests..."
+          npx cypress run --headless
+
+          echo "✅ Smoke tests passed!"
         '''
       }
+
       post {
         always {
-          echo '🔚  Cleaning up background servers…'
+          echo "🔚 Cleaning up servers..."
           sh '''
             pkill -f "react-scripts start" || true
-            pkill -f "json-server"         || true
-            pkill -f "node server.js"      || true
           '''
         }
       }
