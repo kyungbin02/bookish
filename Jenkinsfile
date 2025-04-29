@@ -15,11 +15,11 @@ pipeline {
 
         stage('Install') {
             steps {
-                sh 'npm ci'          // 설치
+                sh 'npm ci'          // 의존성 설치
             }
         }
 
-        stage('Cypress') {          // ← 이 한 단계면 끝
+        stage('Cypress') {      // Cypress 한 단계로 끝
             steps {
                 sh 'npm run cy:run'
             }
