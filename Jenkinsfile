@@ -1,17 +1,19 @@
-// Jenkinsfile
+// Jenkinsfile  (수정판)
 pipeline {
     agent any
 
+    /* Jenkins > Manage Jenkins > NodeJS 에서 만든 툴 이름 */
     tools {
-        nodejs 'NodeJS'      // Jenkins → Manage Jenkins → NodeJS 설정 이름
+        nodejs 'NodeJS'
     }
 
+    /* React-scripts·Cypress 가 CI 환경임을 인지하도록 */
     environment {
-        CI = 'true'          // React-scripts, Cypress가 “CI 모드”로 돌아가도록
+        CI = 'true'
     }
 
     stages {
-        /* 1. 소스 내려받기 -------------------------------------------------- */
+        /* 1) Git 체크아웃 -------------------------------------------------- */
         stage('Checkout') {
             steps {
                 git url: 'https://github.com/kyungbin02/bookish.git',
@@ -19,41 +21,39 @@ pipeline {
             }
         }
 
-        /* 2. 의존성 설치 ---------------------------------------------------- */
+        /* 2) 패키지 설치 ---------------------------------------------------- */
         stage('Install') {
             steps {
-                sh 'npm ci'   // lockfile-기반 설치
+                sh 'npm ci'
             }
         }
 
-        /* 3. 단위 테스트 ---------------------------------------------------- */
+        /* 3) 단위 테스트 ---------------------------------------------------- */
         stage('Unit Test') {
             steps {
                 sh 'npm test --watchAll=false'
             }
         }
 
-        /* 4. 리액트 빌드 ---------------------------------------------------- */
+        /* 4) 리액트 빌드 ---------------------------------------------------- */
         stage('Build') {
             steps {
                 sh 'npm run build'
             }
         }
 
-        /* 5. Cypress E2E ---------------------------------------------------- */
+        /* 5) Cypress E2E ---------------------------------------------------- */
         stage('E2E') {
             steps {
-                /* 쉘 스크립트는 삼중따옴표/작은따옴표로 감싸
-                   줄바꿈을 그대로 살려야 각 명령이 분리됩니다. */
                 sh '''
-                    # build 폴더를 정적 서버로 띄움
+                    # build 폴더를 정적 서버로 백그라운드 실행
                     nohup npx serve -s build -l 3000 >/dev/null 2>&1 &
                     SERVER_PID=$!
 
-                    # 포트 3000 열릴 때까지 대기
+                    # 3000 포트 열릴 때까지 대기
                     npx wait-on http://localhost:3000
 
-                    # Cypress 헤드리스 실행
+                    # Cypress (Electron headless)
                     npx cypress run --record false
                     RESULT=$?
 
@@ -66,13 +66,10 @@ pipeline {
         }
     }
 
-    /* 6. 결과 수집 --------------------------------------------------------- */
+    /* 6) 결과 수집 --------------------------------------------------------- */
     post {
         always {
-            /* JUnit reporter를 쓰고 있다면 아래 라인 활성화
-            junit '**/cypress/results/**/*.xml'
-            */
-            // 스크린샷·영상 보존 (실패 케이스 확인용)
+            /* 실패 스크린샷·영상 보존 */
             archiveArtifacts artifacts: 'cypress/screenshots/**/*, cypress/videos/**/*',
                              allowEmptyArchive: true
         }
