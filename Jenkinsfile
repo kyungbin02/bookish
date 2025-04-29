@@ -1,79 +1,36 @@
-/*
- * Jenkinsfile – bookish 리액트 프로젝트 CI/CD
- *   ▸ NodeJS 빌드 + 단위 테스트(Jest) + 정적 번들
- *   ▸ json-server 스텁 + 정적 서버 + Cypress E2E
- */
-
 pipeline {
     agent any
-
-    tools {
-        nodejs 'NodeJS'            // Jenkins 관리 ▸ Global Tool 로 등록한 이름
-    }
-
-    environment {
-        CI = 'true'                // CRA --watch 비활성화
-    }
+    tools { nodejs 'NodeJS' }   // 관리화면에서 지정한 이름
 
     stages {
+        stage('Checkout')  { steps { git url: 'https://github.com/kyungbin02/bookish.git',
+                                      branch: '07-the-book-detail-view' } }
 
-        stage('Checkout') {
-            steps {
-                git url: 'https://github.com/kyungbin02/bookish.git',
-                    branch: '07-the-book-detail-view'
-            }
-        }
+        stage('Install')   { steps { sh 'npm ci' } }          // 조금 더 빠른 ci 사용
 
-        stage('Install') {
-            steps {
-                sh 'npm ci'
-            }
-        }
+        stage('Test')      { steps { sh 'npm test --watchAll=false' } }
 
-        stage('Unit Test') {
-            steps {
-                sh 'npm test --watchAll=false'
-            }
-        }
+        stage('Build')     { steps { sh 'npm run build' } }
 
-        stage('Build') {
-            steps {
-                sh 'npm run build'
-            }
-        }
-
+        /* ---------- 여기부터 추가 ---------- */
         stage('E2E') {
             steps {
                 sh '''
-                    # ───── 포트가 이미 점유돼 있으면 강제 종료 ─────
-                    fuser -k 8080/tcp || true
-                    fuser -k 3000/tcp || true
+                    # 1) 앱을 백그라운드(dev 서버)로 띄움
+                    nohup npm start -- --port 3000 >/dev/null 2>&1 &
 
-                    # ───── 스텁 API(json-server) & 정적 서버 ─────
-                    npx json-server --watch db.json --port 8080 &
-                    npx serve -s build -l 3000 &
+                    # 2) 포트 열릴 때까지 최대 30초 대기
+                    npx --yes wait-on http://localhost:3000
 
-                    # ───── 두 서비스가 뜰 때까지 대기 ─────
-                    npx wait-on http://localhost:3000 http://localhost:8080/books
-
-                    # ───── Cypress ─────
-                    npx cypress run --record false
+                    # 3) 사이프레스 실행 (헤드리스 모드)
+                    npx --yes cypress run --record false
                 '''
             }
-
-            post {
-                always {
-                    // 실패 스크린샷 아카이브(있는 경우만)
-                    archiveArtifacts artifacts: 'cypress/screenshots/**/*.png',
-                                      allowEmptyArchive: true
-                }
-            }
+            /* 테스트 끝나면 dev 서버 정리 */
+            post { always { sh 'pkill -f "react-scripts start" || true' } }
         }
-    }
+        /* ---------- 추가 끝 ---------- */
 
-    post {
-        always {
-            echo '파이프라인 종료'
-        }
+        stage('Start')     { steps { sh 'npm start' } }       // 필요 없으면 삭제
     }
 }
