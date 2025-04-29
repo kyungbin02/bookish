@@ -1,6 +1,5 @@
 pipeline {
     agent any
-
     tools {
         nodejs 'NodeJS'
     }
@@ -14,39 +13,37 @@ pipeline {
         }
 
         stage('Install') {
-            steps {
-                sh 'npm install'
-            }
+            steps { sh 'npm ci' }            // 패키지 설치
         }
 
         stage('Unit Test') {
-            steps {
-                sh 'npm test'
-            }
+            steps { sh 'npm test' }          // Jest·RTL
         }
 
-        /* ─────────── 여기부터 수정 ─────────── */
-        stage('Cypress Test') {
+        /* ───── 여기 추가 ───── */
+        stage('Dev Servers') {               // UI + Stub + API
             steps {
                 sh '''
-                    # Jenkins가 백그라운드 프로세스를 죽이지 않도록 설정
                     export JENKINS_NODE_COOKIE=dontKillMe
 
-                    # 서버 실행 (백그라운드)
-                    nohup npm start > devserver.log 2>&1 &
+                    # ➊ React(3000)  ➋ Stub-server(4000)  ➌ Node API(5000)
+                    nohup npm start                   > ui.log   2>&1 &
+                    nohup npm run stub-server -- --port 4000 > stub.log 2>&1 &
+                    nohup node server.js              > api.log 2>&1 &
 
-                    # 서버가 뜰 때까지 기다렸다가 테스트 실행
-                    npx wait-on http://localhost:3000
-                    npx cypress run
+                    # 세 포트가 모두 뜰 때까지 대기
+                    npx wait-on http://localhost:3000 http://localhost:4000 http://localhost:5000
                 '''
             }
         }
-        /* ─────────── 여기까지 ─────────── */
+        /* ──────────────────── */
+
+        stage('Cypress Test') {
+            steps { sh 'npx cypress run' }
+        }
 
         stage('Build') {
-            steps {
-                sh 'npm run build'
-            }
+            steps { sh 'npm run build' }
         }
     }
 }
