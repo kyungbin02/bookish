@@ -59,6 +59,7 @@
     "@types/react-router-dom": "^5.3.3",
     "concurrently": "^9.1.2",
     "cypress": "^14.0.1",
-    "json-server": "^0.17.4"
+    "json-server": "^0.17.4",
+    "wait-on": "^8.0.3"
   }
 }

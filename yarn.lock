@@ -1383,6 +1383,18 @@
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.57.1.tgz"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
+"@hapi/hoek@^9.0.0", "@hapi/hoek@^9.3.0":
+  version "9.3.0"
+  resolved "https://registry.npmjs.org/@hapi/hoek/-/hoek-9.3.0.tgz"
+  integrity sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ==
+
+"@hapi/topo@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.npmjs.org/@hapi/topo/-/topo-5.1.0.tgz"
+  integrity sha512-foQZKJig7Ob0BMAYBfcJk8d77QtOe7Wo4ox7ff1lQYoNNAb6jwcY1ncdoy2e9wQZzvNy7ODZCYJkK8kzmcAnAg==
+  dependencies:
+    "@hapi/hoek" "^9.0.0"
+
 "@humanwhocodes/config-array@^0.13.0":
   version "0.13.0"
   resolved "https://registry.npmjs.org/@humanwhocodes/config-array/-/config-array-0.13.0.tgz"
@@ -1879,6 +1891,23 @@
   version "1.10.5"
   resolved "https://registry.npmjs.org/@rushstack/eslint-patch/-/eslint-patch-1.10.5.tgz"
   integrity sha512-kkKUDVlII2DQiKy7UstOR1ErJP8kUKAQ4oa+SQtM0K+lPdmmjj0YnnxBgtTVYH7mUKtbsxeFC9y0AmK7Yb78/A==
+
+"@sideway/address@^4.1.5":
+  version "4.1.5"
+  resolved "https://registry.npmjs.org/@sideway/address/-/address-4.1.5.tgz"
+  integrity sha512-IqO/DUQHUkPeixNQ8n0JA6102hT9CmaljNTPmQ1u8MEhBo/R4Q8eKLN/vGZxuebwOroDB4cbpjheD4+/sKFK4Q==
+  dependencies:
+    "@hapi/hoek" "^9.0.0"
+
+"@sideway/formula@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.npmjs.org/@sideway/formula/-/formula-3.0.1.tgz"
+  integrity sha512-/poHZJJVjx3L+zVD6g9KgHfYnb443oi7wLu/XKojDviHy6HOEOA6z1Trk5aR1dGcmPenJEgb2sK2I80LeS3MIg==
+
+"@sideway/pinpoint@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/@sideway/pinpoint/-/pinpoint-2.0.0.tgz"
+  integrity sha512-RNiOoTPkptFtSVzQevY/yWtZwf/RxyVnPy/OcA9HBM3MlGDnBEYL5B41H0MTn0Uec8Hi+2qUtTfG2WWZBmMejQ==
 
 "@sinclair/typebox@^0.24.1":
   version "0.24.51"
@@ -3128,10 +3157,10 @@ axe-core@^4.10.0:
   resolved "https://registry.npmjs.org/axe-core/-/axe-core-4.10.2.tgz"
   integrity sha512-RE3mdQ7P3FRSe7eqCWoeQ/Z9QXrtniSjp1wUjt5nRC3WIpz5rSCve6o3fsZ2aCpJtrZjSZgjwXAoTO5k4tEI0w==
 
-axios@^1.7.9:
-  version "1.7.9"
-  resolved "https://registry.npmjs.org/axios/-/axios-1.7.9.tgz"
-  integrity sha512-LhLcE7Hbiryz8oMDdDptSrWowmB4Bl6RCt6sIJKpRB4XtVf0iEgewX3au/pJqm+Py1kCASkb/FFKjxQaLtxJvw==
+axios@^1.7.9, axios@^1.8.2:
+  version "1.9.0"
+  resolved "https://registry.npmjs.org/axios/-/axios-1.9.0.tgz"
+  integrity sha512-re4CqKTJaURpzbLHtIi6XpDv20/CnpXOtjRY5/CU32L8gU8ek9UIivcfvSWvmKEngmVbrUtPpdDwWDWL7DNHvg==
   dependencies:
     follow-redirects "^1.15.6"
     form-data "^4.0.0"
@@ -6995,6 +7024,17 @@ jju@^1.1.0:
   resolved "https://registry.npmjs.org/jju/-/jju-1.4.0.tgz"
   integrity sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==
 
+joi@^17.13.3:
+  version "17.13.3"
+  resolved "https://registry.npmjs.org/joi/-/joi-17.13.3.tgz"
+  integrity sha512-otDA4ldcIx+ZXsKHWmp0YizCweVRZG96J10b0FevjfuncLO1oX59THoAmHkNubYJ+9gWsYsp5k8v4ib6oDv1fA==
+  dependencies:
+    "@hapi/hoek" "^9.3.0"
+    "@hapi/topo" "^5.1.0"
+    "@sideway/address" "^4.1.5"
+    "@sideway/formula" "^3.0.1"
+    "@sideway/pinpoint" "^2.0.0"
+
 "js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/js-tokens/-/js-tokens-4.0.0.tgz"
@@ -9351,10 +9391,10 @@ run-parallel@^1.1.9:
   dependencies:
     queue-microtask "^1.2.2"
 
-rxjs@^7.5.1, rxjs@^7.8.1:
-  version "7.8.1"
-  resolved "https://registry.npmjs.org/rxjs/-/rxjs-7.8.1.tgz"
-  integrity sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==
+rxjs@^7.5.1, rxjs@^7.8.1, rxjs@^7.8.2:
+  version "7.8.2"
+  resolved "https://registry.npmjs.org/rxjs/-/rxjs-7.8.2.tgz"
+  integrity sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==
   dependencies:
     tslib "^2.1.0"
 
@@ -10737,6 +10777,17 @@ w3c-xmlserializer@^2.0.0:
   integrity sha512-4tzD0mF8iSiMiNs30BiLO3EpfGLZUT2MSX/G+o7ZywDzliWQ3OPtTZ0PTC3B3ca1UAf4cJMHB+2Bf56EriJuRA==
   dependencies:
     xml-name-validator "^3.0.0"
+
+wait-on@^8.0.3:
+  version "8.0.3"
+  resolved "https://registry.npmjs.org/wait-on/-/wait-on-8.0.3.tgz"
+  integrity sha512-nQFqAFzZDeRxsu7S3C7LbuxslHhk+gnJZHyethuGKAn2IVleIbTB9I3vJSQiSR+DifUqmdzfPMoMPJfLqMF2vw==
+  dependencies:
+    axios "^1.8.2"
+    joi "^17.13.3"
+    lodash "^4.17.21"
+    minimist "^1.2.8"
+    rxjs "^7.8.2"
 
 walker@^1.0.7:
   version "1.0.8"
