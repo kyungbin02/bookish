@@ -24,10 +24,10 @@ pipeline {
                 sh 'npm run build'
             }
         }
-        stage('Start') {
+        stage('Start Servers') {
             steps {
-                sh 'npm start &'
-                sh 'sleep 10'
+                sh 'npm run dev &'
+                sh 'npx wait-on http://localhost:3000 http://localhost:8080'
             }
         }
         stage('Cypress') {
