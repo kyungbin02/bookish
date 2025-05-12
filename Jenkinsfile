@@ -24,9 +24,16 @@ pipeline {
                 sh 'npm run build'
             }
         }
+        stage('Start Servers') {
+            steps {
+                sh 'npm start &'
+                sh 'npm run server &'
+                sh 'npx wait-on http://localhost:3000 http://localhost:8080'
+            }
+        }
         stage('Cypress') {
             steps {
-                sh 'npm run cy:run'
+                sh 'npx cypress run'
             }
         }
     }
