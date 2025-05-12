@@ -1,44 +1,36 @@
 pipeline {
     agent any
     tools {
-        nodejs 'NodeJS'
+        nodejs 'NodeJS'  // 관리화면에서 지정한 이름
     }
     stages {
         stage("Checkout") {
             steps {
-                git url: 'https://github.com/kyungbin02/bookish.git',
-                    branch: '07-the-book-detail-view'
+                git url: 'https://github.com/kyungbin02/bookish.git', branch: '07-the-book-detail-view'
             }
         }
-        stage("Install") {
+        stage('Install') {
             steps {
                 sh 'npm install'
             }
         }
-        stage("Test") {
+        stage('Test') {
             steps {
                 sh 'npm test'
             }
         }
-        stage("Build Frontend") {
+        stage('Build') {
             steps {
                 sh 'npm run build'
             }
         }
-        stage("Start Backend (json-server)") {
+        stage('Start') {
             steps {
-                // 루트의 db.json 을 API 서버로 실행
-                sh 'nohup npx json-server --watch db.json --port 8080 > json-server.log 2>&1 &'
+                sh 'npm start &'
                 sh 'sleep 10'
             }
         }
-        stage("Start Frontend") {
-            steps {
-                sh 'nohup npm start > server.log 2>&1 &'
-                sh 'sleep 15'
-            }
-        }
-        stage("Cypress Test") {
+        stage('Cypress') {
             steps {
                 sh 'npx cypress run'
             }
