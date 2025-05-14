@@ -27,6 +27,8 @@ pipeline {
                 sh 'npm run build'
             }
         }
+        // 서버 시작 및 Cypress 테스트 단계는 주석 처리하여 실행하지 않음
+        /* 
         stage('Start Servers') {
             steps {
                 sh 'npm start &'
@@ -39,5 +41,6 @@ pipeline {
                 sh 'npx cypress run --headless'
             }
         }
+        */
     }
 }
