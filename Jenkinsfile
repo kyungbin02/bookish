@@ -16,7 +16,10 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh 'npm test'
+                sh 'CI=true npm test -- --watchAll=false --maxWorkers=2 --testTimeout=10000'
+            }
+            options {
+                timeout(time: 3, unit: 'MINUTES')
             }
         }
         stage('Build') {
