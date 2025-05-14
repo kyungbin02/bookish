@@ -28,12 +28,12 @@ pipeline {
             steps {
                 sh 'npm start &'
                 sh 'npm run server &'
-                sh 'npx wait-on http://localhost:3000 http://localhost:8080'
+                sh 'npx wait-on --timeout 60000 http://localhost:3000 http://localhost:8080'
             }
         }
         stage('Cypress') {
             steps {
-                sh 'npx cypress run'
+                sh 'npx cypress run --headless'
             }
         }
     }
