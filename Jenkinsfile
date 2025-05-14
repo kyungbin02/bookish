@@ -27,20 +27,26 @@ pipeline {
                 sh 'npm run build'
             }
         }
-        // 서버 시작 및 Cypress 테스트 단계는 주석 처리하여 실행하지 않음
-        /* 
-        stage('Start Servers') {
+        stage('Start and Run Cypress') {
             steps {
-                sh 'npm start &'
-                sh 'npm run server &'
-                sh 'npx wait-on --timeout 60000 http://localhost:3000 http://localhost:8080'
+                // 백그라운드에서 서버 시작하고, 서버가 실행되기 전에 cypress가 실행되지 않도록 보장
+                sh '''
+                npm start &
+                npm run server &
+                sleep 20
+                npx cypress run --headless
+                '''
+            }
+            options {
+                timeout(time: 5, unit: 'MINUTES')
             }
         }
-        stage('Cypress') {
-            steps {
-                sh 'npx cypress run --headless'
-            }
+    }
+    post {
+        always {
+            // 백그라운드로 실행된 프로세스 정리
+            sh 'pkill -f "node.*react-scripts" || true'
+            sh 'pkill -f "node.*server" || true'
         }
-        */
     }
 }
