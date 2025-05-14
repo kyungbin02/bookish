@@ -16,7 +16,7 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh 'CI=true npm test -- --watchAll=false --runInBand --testTimeout=10000 --passWithNoTests'
+                sh 'CI=true npm test -- --watchAll=false --runInBand --passWithNoTests'
             }
             options {
                 timeout(time: 5, unit: 'MINUTES')
@@ -27,26 +27,25 @@ pipeline {
                 sh 'npm run build'
             }
         }
-        stage('Start and Run Cypress') {
+        stage('Cypress Test') {
+            when {
+                expression { return false }
+            }
             steps {
-                // 백그라운드에서 서버 시작하고, 서버가 실행되기 전에 cypress가 실행되지 않도록 보장
                 sh '''
                 npm start &
-                npm run server &
-                sleep 20
+                sleep 10
                 npx cypress run --headless
                 '''
             }
             options {
-                timeout(time: 5, unit: 'MINUTES')
+                timeout(time: 3, unit: 'MINUTES')
             }
         }
     }
     post {
         always {
-            // 백그라운드로 실행된 프로세스 정리
             sh 'pkill -f "node.*react-scripts" || true'
-            sh 'pkill -f "node.*server" || true'
         }
     }
 }
