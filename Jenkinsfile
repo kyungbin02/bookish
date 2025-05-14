@@ -45,7 +45,7 @@ pipeline {
     }
     post {
         always {
-            node {
+            script {
                 sh 'pkill -f "node.*react-scripts" || true'
             }
         }
