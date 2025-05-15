@@ -45,10 +45,10 @@ pipeline {
                 # server.js 파일의 내용 확인
                 cat server.js | grep -n "app.listen" || true
                 
-                # 임시 파일 생성 및 포트 관련 라인 직접 수정
+                # 임시 파일 생성 및 포트 관련 라인 직접 수정 - 명시적으로 PORT 환경변수 사용
                 cat server.js > server.js.tmp
                 rm server.js
-                cat server.js.tmp | sed 's/app.listen(8080/app.listen(process.env.PORT || 8080/g' > server.js
+                cat server.js.tmp | sed 's/app.listen(8080/app.listen(process.env.PORT || 8181/g' > server.js
                 rm server.js.tmp
                 
                 # 수정 확인
@@ -83,6 +83,20 @@ module.exports = defineConfig({
                 
                 # 설정 확인
                 cat cypress.config.js
+                
+                # 사이프레스 테스트 파일 확인 및 수정 - baseUrl 참조 문제 해결
+                echo "Checking Cypress spec files..."
+                find cypress/e2e -name "*.cy.ts" -o -name "*.cy.js" | xargs cat || true
+                
+                # bookish.spec.cy.ts 파일 확인 및 수정
+                if [ -f cypress/e2e/bookish.spec.cy.ts ]; then
+                  echo "Updating cypress/e2e/bookish.spec.cy.ts..."
+                  cat cypress/e2e/bookish.spec.cy.ts > cypress/e2e/bookish.spec.cy.ts.tmp
+                  cat cypress/e2e/bookish.spec.cy.ts.tmp | sed 's|cy.visit("http://localhost:3000")|cy.visit("/")|g' > cypress/e2e/bookish.spec.cy.ts
+                  rm cypress/e2e/bookish.spec.cy.ts.tmp
+                  echo "Updated spec file:"
+                  cat cypress/e2e/bookish.spec.cy.ts
+                fi
                 '''
             }
         }
@@ -90,30 +104,31 @@ module.exports = defineConfig({
             steps {
                 // 백그라운드에서 서버 시작하고, 사이프레스 테스트 실행
                 sh '''
-                # 포트 사용 중지 확인
-                echo "Checking and killing any processes on ports 3030 and 8181"
-                fuser -k 3030/tcp 8181/tcp || true
+                # 포트 사용 중지 확인 - 더 확실하게
+                echo "Killing any processes on ports 3030 and 8181..."
+                # fuser를 사용할 수 없는 환경에서는 다른 방법으로
+                ps aux | grep -E ':(3030|8181)' | grep -v grep | awk '{print $2}' | xargs -r kill -9 || true
                 
-                # API 서버 시작 (PORT 환경변수 확실히 적용)
+                # API 서버 시작 (PORT 환경변수 확실히 적용) - 명시적으로 PORT 설정
                 echo "Starting API server..."
-                node -e "process.env.PORT=8181; require('./server.js')" &
+                PORT=8181 node server.js &
                 echo "API Server started on port 8181"
-                sleep 15
+                sleep 10
                 
                 # React 앱 시작
                 echo "Starting React app..."
                 PORT=3030 npm start &
                 echo "React app started on port 3030"
-                sleep 20
+                sleep 15
                 
                 # 서버 상태 확인
                 echo "Checking server status..."
                 curl -s http://localhost:3030 || echo "React server not responding"
                 curl -s http://localhost:8181/books || echo "API server not responding"
                 
-                # Cypress 실행
+                # Cypress 실행 - 환경변수 명확하게 설정
                 echo "Running Cypress tests..."
-                CYPRESS_baseUrl=http://localhost:3030 CYPRESS_API_URL=http://localhost:8181 npx cypress run --headless
+                CYPRESS_baseUrl=http://localhost:3030 npx cypress run --config baseUrl=http://localhost:3030 --headless
                 '''
             }
             options {
@@ -127,7 +142,6 @@ module.exports = defineConfig({
             sh '''
             pkill -f "node.*react-scripts" || true
             pkill -f "node.*server" || true
-            fuser -k 3030/tcp 8181/tcp || true
             # ps와 grep을 사용한 프로세스 정리
             ps aux | grep 'node' | grep -v grep | awk '{print $2}' | xargs -r kill -9 || true
             '''
