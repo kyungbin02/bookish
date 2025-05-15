@@ -40,41 +40,68 @@ pipeline {
         }
         stage('Modify Server Config') {
             steps {
-                // server.js 파일을 수정하여 환경변수에서 포트를 읽도록 수정
+                // server.js 파일을 직접 수정
                 sh '''
-                # server.js에서 포트 설정 부분 수정
-                sed -i 's/app.listen(8080/app.listen(process.env.PORT || 8080/g' server.js || true
+                # server.js 파일의 내용 확인
+                cat server.js | grep -n "app.listen" || true
+                
+                # 임시 파일 생성 및 포트 관련 라인 직접 수정
+                cat server.js > server.js.tmp
+                rm server.js
+                cat server.js.tmp | sed 's/app.listen(8080/app.listen(process.env.PORT || 8080/g' > server.js
+                rm server.js.tmp
+                
+                # 수정 확인
                 cat server.js | grep -n "app.listen" || true
                 '''
             }
         }
         stage('Setup Cypress Config') {
             steps {
-                // cypress.config.js 또는 비슷한 파일 확인
+                // 사이프레스 설정 파일 처리
                 sh '''
-                mkdir -p cypress
-                # Cypress 설정 파일이 있는지 확인
-                if [ ! -f cypress.config.js ]; then
-                  echo "Creating cypress.config.js with baseUrl..."
-                  echo "export default { e2e: { baseUrl: 'http://localhost:3030' } }" > cypress.config.js
-                else
-                  # 기존 설정 파일 수정
-                  sed -i 's|baseUrl:.*|baseUrl: \"http://localhost:3030\"|g' cypress.config.js || true
-                fi
-                cat cypress.config.js || true
+                # 기존 파일 정리
+                rm -f cypress.config.ts cypress.config.js || true
+                
+                # 프로젝트 구조 확인
+                ls -la cypress/ || true
+                
+                # 필요한 디렉토리 생성
+                mkdir -p cypress/e2e
+                
+                # 새 설정 파일 생성
+                echo "const { defineConfig } = require('cypress');
+
+module.exports = defineConfig({
+  e2e: {
+    baseUrl: 'http://localhost:3030',
+    setupNodeEvents(on, config) {
+      // implement node event listeners here
+    },
+  },
+});" > cypress.config.js
+                
+                # 설정 확인
+                cat cypress.config.js
                 '''
             }
         }
         stage('Start and Run Cypress') {
             steps {
-                // 백그라운드에서 서버 시작하고, 서버가 실행되기 전에 cypress가 실행되지 않도록 보장
+                // 백그라운드에서 서버 시작하고, 사이프레스 테스트 실행
                 sh '''
-                # 먼저 API 서버 시작 (8181 포트 사용)
-                PORT=8181 npm run server &
+                # 포트 사용 중지 확인
+                echo "Checking and killing any processes on ports 3030 and 8181"
+                fuser -k 3030/tcp 8181/tcp || true
+                
+                # API 서버 시작 (PORT 환경변수 확실히 적용)
+                echo "Starting API server..."
+                node -e "process.env.PORT=8181; require('./server.js')" &
                 echo "API Server started on port 8181"
                 sleep 15
                 
-                # React 앱 시작 (3030 포트 사용)
+                # React 앱 시작
+                echo "Starting React app..."
                 PORT=3030 npm start &
                 echo "React app started on port 3030"
                 sleep 20
@@ -84,12 +111,9 @@ pipeline {
                 curl -s http://localhost:3030 || echo "React server not responding"
                 curl -s http://localhost:8181/books || echo "API server not responding"
                 
-                # Cypress 환경변수 설정
-                export CYPRESS_baseUrl=http://localhost:3030
-                export CYPRESS_API_URL=http://localhost:8181
-                
                 # Cypress 실행
-                npx cypress run --headless --config baseUrl=http://localhost:3030
+                echo "Running Cypress tests..."
+                CYPRESS_baseUrl=http://localhost:3030 CYPRESS_API_URL=http://localhost:8181 npx cypress run --headless
                 '''
             }
             options {
@@ -103,6 +127,7 @@ pipeline {
             sh '''
             pkill -f "node.*react-scripts" || true
             pkill -f "node.*server" || true
+            fuser -k 3030/tcp 8181/tcp || true
             # ps와 grep을 사용한 프로세스 정리
             ps aux | grep 'node' | grep -v grep | awk '{print $2}' | xargs -r kill -9 || true
             '''
