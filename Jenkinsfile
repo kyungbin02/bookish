@@ -9,6 +9,13 @@ pipeline {
                 git url: 'https://github.com/kyungbin02/bookish.git', branch: '07-the-book-detail-view'
             }
         }
+        stage('Clean Environment') {
+            steps {
+                // 이전에 실행 중인 서버 프로세스 정리
+                sh 'pkill -f "node.*react-scripts" || true'
+                sh 'pkill -f "node.*server" || true'
+            }
+        }
         stage('Install') {
             steps {
                 sh 'npm install'
@@ -32,13 +39,14 @@ pipeline {
                 // 백그라운드에서 서버 시작하고, 서버가 실행되기 전에 cypress가 실행되지 않도록 보장
                 sh '''
                 npm start &
+                sleep 10
                 npm run server &
                 sleep 20
                 npx cypress run --headless
                 '''
             }
             options {
-                timeout(time: 5, unit: 'MINUTES')
+                timeout(time: 10, unit: 'MINUTES')
             }
         }
     }
