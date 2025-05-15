@@ -8,6 +8,9 @@ const server = jsonServer.create();
 const router = jsonServer.router("db.json");
 const middlewares = jsonServer.defaults();
 
+// 포트 설정 (환경 변수에서 가져오거나 기본값 8080 사용)
+const PORT = process.env.PORT || 8080;
+
 // 미들웨어 설정
 server.use(cors());
 server.use(middlewares);
@@ -23,7 +26,6 @@ server.post("/books/:id/reviews", (req, res) => {
 
   const book = router.db.get("books").find({ id: parseInt(id) }).value();
 
-  // 기본 예제는 단순히 reviews 배열이 없으면 새로 만들고 push
   if (book) {
     if (!book.reviews) {
       book.reviews = [];
@@ -37,7 +39,7 @@ server.post("/books/:id/reviews", (req, res) => {
     };
 
     book.reviews.push(review);
-    router.db.write(); // db.json에 반영
+    router.db.write();
 
     return res.status(201).json(review);
   } else {
@@ -45,8 +47,7 @@ server.post("/books/:id/reviews", (req, res) => {
   }
 });
 
-
-// (선택) DELETE /books/:id/reviews 로 리뷰 초기화
+// DELETE /books/:id/reviews 로 리뷰 초기화
 server.delete("/books/:id/reviews", (req, res) => {
   const { id } = req.params;
   const book = router.db.get("books").find({ id: parseInt(id) }).value();
@@ -64,6 +65,6 @@ server.delete("/books/:id/reviews", (req, res) => {
 server.use(router);
 
 // 서버 실행
-server.listen(8080, () => {
-  console.log("📢 JSON Server is running on port 8080");
+server.listen(PORT, () => {
+  console.log(`📢 JSON Server is running on port ${PORT}`);
 });
