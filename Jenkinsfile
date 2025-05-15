@@ -88,12 +88,23 @@ module.exports = defineConfig({
                 echo "Checking Cypress spec files..."
                 find cypress/e2e -name "*.cy.ts" -o -name "*.cy.js" | xargs cat || true
                 
-                # bookish.spec.cy.ts 파일 확인 및 수정
+                # gotoApp 함수와 apiUrl 설정 모두 수정
                 if [ -f cypress/e2e/bookish.spec.cy.ts ]; then
                   echo "Updating cypress/e2e/bookish.spec.cy.ts..."
+                  # 여러 줄로 나누어 수정
+                  
+                  # 임시 파일 생성
                   cat cypress/e2e/bookish.spec.cy.ts > cypress/e2e/bookish.spec.cy.ts.tmp
-                  cat cypress/e2e/bookish.spec.cy.ts.tmp | sed 's|cy.visit("http://localhost:3000")|cy.visit("/")|g' > cypress/e2e/bookish.spec.cy.ts
-                  rm cypress/e2e/bookish.spec.cy.ts.tmp
+                  
+                  # apiUrl 변수 업데이트 (8080 -> 8181)
+                  sed -i 's|const apiUrl = Cypress.env("apiUrl") || "http://localhost:8080"|const apiUrl = Cypress.env("apiUrl") || "http://localhost:8181"|g' cypress/e2e/bookish.spec.cy.ts.tmp
+                  
+                  # visit URL 업데이트 (3000 -> /)
+                  sed -i 's|cy.visit("http://localhost:3000/");|cy.visit("/");|g' cypress/e2e/bookish.spec.cy.ts.tmp
+                  
+                  # 최종 파일로 이동
+                  mv cypress/e2e/bookish.spec.cy.ts.tmp cypress/e2e/bookish.spec.cy.ts
+                  
                   echo "Updated spec file:"
                   cat cypress/e2e/bookish.spec.cy.ts
                 fi
@@ -108,6 +119,7 @@ module.exports = defineConfig({
                 echo "Killing any processes on ports 3030 and 8181..."
                 # fuser를 사용할 수 없는 환경에서는 다른 방법으로
                 ps aux | grep -E ':(3030|8181)' | grep -v grep | awk '{print $2}' | xargs -r kill -9 || true
+                ps aux | grep -E 'node' | grep -v grep | awk '{print $2}' | xargs -r kill -9 || true
                 
                 # API 서버 시작 (PORT 환경변수 확실히 적용) - 명시적으로 PORT 설정
                 echo "Starting API server..."
@@ -128,7 +140,7 @@ module.exports = defineConfig({
                 
                 # Cypress 실행 - 환경변수 명확하게 설정
                 echo "Running Cypress tests..."
-                CYPRESS_baseUrl=http://localhost:3030 npx cypress run --config baseUrl=http://localhost:3030 --headless
+                CYPRESS_baseUrl=http://localhost:3030 CYPRESS_apiUrl=http://localhost:8181 npx cypress run --config baseUrl=http://localhost:3030 --headless
                 '''
             }
             options {
